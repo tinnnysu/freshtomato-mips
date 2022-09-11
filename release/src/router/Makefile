@@ -407,6 +407,7 @@ obj-$(TCONFIG_TINC) += $(OPENSSLDIR)
 obj-$(TCONFIG_TINC) += lzo
 obj-$(TCONFIG_TINC) += tinc
 obj-$(TCONFIG_TINC) += ndisc6
+obj-$(TCONFIG_TINC) += picocom
 obj-$(TCONFIG_TINC) += libconfuse
 obj-$(TCONFIG_TINC) += inadyn
 obj-$(TCONFIG_NGINX) += zlib
@@ -3561,6 +3562,21 @@ ndisc6-clean:
 	-@$(MAKE) -C ndisc6 clean
 	@rm -f ndisc6/stamp-h1
 	$(call unpatch_files,ndisc6)
+
+picocom/stamp-h1:
+	touch $@
+
+picocom: picocom/stamp-h1
+	@$(SEP)
+	@$(MAKE) -C $@ $(PARALLEL_BUILD)
+
+picocom-install:
+	install -D picocom/picocom $(INSTALLDIR)/picocom/usr/bin/picocom
+	$(STRIP) $(INSTALLDIR)/picocom/usr/bin/picocom
+
+picocom-clean:
+	-@$(MAKE) -C picocom clean
+	@rm -f picocom/stamp-h1
 
 libconfuse/stamp-h1:
 	cd libconfuse && ./autogen.sh && \
