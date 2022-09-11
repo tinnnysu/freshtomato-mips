@@ -406,6 +406,7 @@ obj-$(TCONFIG_TINC) += zlib
 obj-$(TCONFIG_TINC) += $(OPENSSLDIR)
 obj-$(TCONFIG_TINC) += lzo
 obj-$(TCONFIG_TINC) += tinc
+obj-$(TCONFIG_TINC) += ndisc6
 obj-$(TCONFIG_NGINX) += zlib
 obj-$(TCONFIG_NGINX) += sqlite
 obj-$(TCONFIG_NGINX) += $(OPENSSLDIR)
@@ -3535,6 +3536,28 @@ expat-install:
 expat-clean:
 	-@$(MAKE) -C expat clean
 	@rm -f expat/stamp-h1
+
+ndisc6/stamp-h1:
+	$(call patch_files,ndisc6)
+	cd ndisc6 && autoreconf -fsi && \
+		CFLAGS="-Os -Wall $(EXTRACFLAGS)" \
+		$(CONFIGURE) --prefix=/usr
+	touch $@
+
+ndisc6: ndisc6/stamp-h1
+	@$(SEP)
+	@$(MAKE) -C $@ $(PARALLEL_BUILD)
+
+ndisc6-install:
+	install -D ndisc6/src/ndisc6 $(INSTALLDIR)/ndisc6/usr/bin/ndisc6
+	install -D ndisc6/src/rdisc6 $(INSTALLDIR)/ndisc6/usr/bin/rdisc6
+	$(STRIP) $(INSTALLDIR)/ndisc6/usr/bin/ndisc6
+	$(STRIP) $(INSTALLDIR)/ndisc6/usr/bin/rdisc6
+
+ndisc6-clean:
+	-@$(MAKE) -C ndisc6 clean
+	@rm -f ndisc6/stamp-h1
+	$(call unpatch_files,ndisc6)
 
 avahi/stamp-h1:
 	$(call patch_files,avahi)
