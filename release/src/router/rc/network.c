@@ -1239,6 +1239,8 @@ void enable_ipv6(int enable)
 			else {
 				snprintf(s, sizeof(s), "ipv6/conf/%s/disable_ipv6", dirent->d_name);
 				f_write_procsysnet(s, enable ? "0" : "1");
+				snprintf(s, sizeof(s), "ipv6/conf/%s/use_tempaddr", dirent->d_name);
+				f_write_procsysnet(s, enable ? "2" : "0");
 			}
 		}
 		closedir(dir);

@@ -938,6 +938,8 @@ define KernelConfig
 	if [ "$(IPV6SUPP)" = "y" ]; then \
 		sed -i "/CONFIG_IPV6 is not set/d" $(1); \
 		echo "CONFIG_IPV6=y" >>$(1); \
+		sed -i "/CONFIG_IPV6_PRIVACY is not set/d" $(1); \
+		echo "CONFIG_IPV6_PRIVACY=y" >>$(1); \
 		sed -i "/CONFIG_IP6_NF_IPTABLES/d" $(1); \
 		echo "CONFIG_IP6_NF_IPTABLES=y" >>$(1); \
 		sed -i "/CONFIG_IP6_NF_MATCH_RT/d" $(1); \
