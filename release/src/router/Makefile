@@ -407,6 +407,8 @@ obj-$(TCONFIG_TINC) += $(OPENSSLDIR)
 obj-$(TCONFIG_TINC) += lzo
 obj-$(TCONFIG_TINC) += tinc
 obj-$(TCONFIG_TINC) += ndisc6
+obj-$(TCONFIG_TINC) += libconfuse
+obj-$(TCONFIG_TINC) += inadyn
 obj-$(TCONFIG_NGINX) += zlib
 obj-$(TCONFIG_NGINX) += sqlite
 obj-$(TCONFIG_NGINX) += $(OPENSSLDIR)
@@ -3558,6 +3560,51 @@ ndisc6-clean:
 	-@$(MAKE) -C ndisc6 clean
 	@rm -f ndisc6/stamp-h1
 	$(call unpatch_files,ndisc6)
+
+libconfuse/stamp-h1:
+	cd libconfuse && ./autogen.sh && \
+		CFLAGS="-Os -Wall $(EXTRACFLAGS)" \
+		$(CONFIGURE) --prefix=/usr --disable-shared \
+		--disable-examples --disable-nls \
+		--without-libiconv-prefix --without-libintl-prefix
+	touch $@
+
+libconfuse: libconfuse/stamp-h1
+	@$(SEP)
+	@$(MAKE) -C $@ $(PARALLEL_BUILD)
+	@$(MAKE) -C $@ DESTDIR=$(TOP)/libconfuse/staged install
+
+libconfuse-install:
+	@true
+
+libconfuse-clean:
+	-@$(MAKE) -C libconfuse clean
+	@rm -f libconfuse/stamp-h1
+
+inadyn/stamp-h1:
+	cd inadyn && ./autogen.sh && \
+		CFLAGS="-Os -Wall $(EXTRACFLAGS) -ffunction-sections -fdata-sections -I$(SRCBASE)/include" \
+		LDFLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections -L$(TOP)/nvram$(BCMEX) -lnvram -L$(TOP)/shared -lshared" \
+#		LDFLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections -L$(TOP)/nvram$(BCMEX) -lnvram" \
+		$(CONFIGURE) --prefix=/usr --sysconfdir=/etc --localstatedir=/var \
+		--enable-openssl \
+		confuse_CFLAGS="-I$(TOP)/libconfuse/staged/usr/include" \
+		confuse_LIBS="-L$(TOP)/libconfuse/staged/usr/lib -lconfuse" \
+		OpenSSL_CFLAGS="-I$(TOP)/$(OPENSSLDIR)/staged/usr/include" \
+		OpenSSL_LIBS="-L$(TOP)/$(OPENSSLDIR)/staged/usr/lib -lcrypto -lssl $(if $(TCONFIG_OPENSSL11),-lpthread,) -L$(TOP)/nvram$(BCMEX) -lnvram -L$(TOP)/shared -lshared"
+	touch $@
+
+inadyn: inadyn/stamp-h1
+	@$(SEP)
+	@$(MAKE) -C $@ $(PARALLEL_BUILD)
+
+inadyn-install:
+	install -D inadyn/src/inadyn $(INSTALLDIR)/inadyn/usr/sbin/inadyn
+	$(STRIP) $(INSTALLDIR)/inadyn/usr/sbin/inadyn
+
+inadyn-clean:
+	-@$(MAKE) -C inadyn clean
+	@rm -f inadyn/stamp-h1
 
 avahi/stamp-h1:
 	$(call patch_files,avahi)
